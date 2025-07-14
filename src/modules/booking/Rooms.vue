@@ -15,7 +15,7 @@
 
     <div class="filters-section">
       <div class="filters">
-        <select v-model="filters.sortBy" class="filter-select">
+        <select v-model="filters.sortBy" class="filter-select" @change="filterRooms">
           <option value="price-low">Price: Low to High</option>
           <option value="price-high">Price: High to Low</option>
           <option value="rating">Highest Rated</option>
@@ -23,8 +23,9 @@
         </select>
       </div>
     </div>
+    <div class="loading-spinner" v-if="loading"><DotLoader /></div>
 
-    <div class="rooms-grid">
+    <div class="rooms-grid" v-if="!loading">
       <div v-for="room in filteredRooms" :key="room.id" class="room-card">
         <div class="room-image">
           <img :src="room.image" :alt="room.name" />
@@ -63,7 +64,7 @@
       </div>
     </div>
 
-    <div v-if="filteredRooms.length === 0" class="no-rooms">
+    <div v-if="!loading && filteredRooms.length === 0" class="no-rooms">
       <h3>No rooms available</h3>
       <button @click="modifySearch" class="modify-search-btn">Modify Search</button>
     </div>
@@ -71,8 +72,9 @@
 </template>
 
 <script setup lang="ts">
+import DotLoader from '@/components/DotLoader.vue'
 import { rooms as roomsData } from '@/data/mocks'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BookingSteps from './components/BookingSteps.vue'
 
@@ -80,6 +82,9 @@ const route = useRoute()
 const router = useRouter()
 
 const rooms = ref(roomsData)
+
+const loading = ref(false)
+const filteredRooms = ref<any>([])
 
 const filters = ref({
   sortBy: 'price-low',
@@ -97,7 +102,10 @@ const hasSearchParams = computed(() => {
   return searchParams.value.checkin && searchParams.value.checkout && searchParams.value.guests
 })
 
-const filteredRooms = computed(() => {
+const filterRooms = async () => {
+  loading.value = true
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  loading.value = false
   let filtered = [...rooms.value]
 
   if (searchParams.value.guests) {
@@ -124,8 +132,8 @@ const filteredRooms = computed(() => {
       break
   }
 
-  return filtered
-})
+  filteredRooms.value = filtered
+}
 
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
@@ -166,6 +174,14 @@ const selectRoom = (room: any) => {
     },
   })
 }
+
+const onOrderChange = () => {
+  filterRooms()
+}
+
+onMounted(async () => {
+  filterRooms()
+})
 </script>
 
 <style scoped>

@@ -1,8 +1,7 @@
 <template>
   <div class="dashboard-page">
     <div class="dashboard-header">
-      <h1>My Dashboard</h1>
-      <p>Welcome back, {{ user?.name }}! Manage your bookings here.</p>
+      <p class="welcome-message">Welcome back, {{ user?.name }}! Manage your bookings here.</p>
     </div>
 
     <div class="dashboard-tabs">
@@ -11,7 +10,8 @@
     </div>
 
     <div class="bookings-section">
-      <div v-if="activeTab === 'upcoming'" class="bookings-list">
+      <div class="loading-spinner" v-if="loading"><DotLoader /></div>
+      <div v-else-if="activeTab === 'upcoming'" class="bookings-list">
         <div v-if="upcomingBookings.length === 0" class="no-bookings">
           <h3>No upcoming bookings</h3>
           <p>You don't have any upcoming reservations.</p>
@@ -42,7 +42,7 @@
 
             <div class="booking-actions">
               <button @click="viewBooking(booking)" class="action-btn view-btn">View Details</button>
-              <button @click="cancelBooking(booking)" class="action-btn cancel-btn" :disabled="!canCancelBooking(booking)">Cancel</button>
+              <button @click="openConfirmModal(booking)" class="action-btn cancel-btn" :disabled="!canCancelBooking(booking)">Cancel</button>
             </div>
           </div>
         </div>
@@ -85,57 +85,83 @@
         </div>
       </div>
     </div>
-
-    <div v-if="selectedBooking" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h2>Booking Details</h2>
-          <button @click="closeModal" class="close-btn">&times;</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="detail-section">
-            <h3>Room Information</h3>
-            <p><strong>Room:</strong> {{ selectedBooking.room.name }}</p>
-            <p><strong>Type:</strong> {{ selectedBooking.room.type }}</p>
-            <p><strong>Size:</strong> {{ selectedBooking.room.size }} m²</p>
+    <Transition>
+      <div v-if="selectedBooking" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2>Booking Details</h2>
+            <button @click="closeModal" class="close-btn">&times;</button>
           </div>
 
-          <div class="detail-section">
-            <h3>Booking Information</h3>
-            <p><strong>Confirmation Number:</strong> {{ selectedBooking.confirmationNumber }}</p>
-            <p><strong>Check-in:</strong> {{ formatDate(selectedBooking.checkinDate) }}</p>
-            <p><strong>Check-out:</strong> {{ formatDate(selectedBooking.checkoutDate) }}</p>
-            <p><strong>Guests:</strong> {{ selectedBooking.guests }}</p>
-            <p><strong>Status:</strong> {{ selectedBooking.status }}</p>
+          <div class="modal-body">
+            <div class="detail-container">
+              <div class="detail-section">
+                <h3>Room Information</h3>
+                <p><strong>Room:</strong> {{ selectedBooking.room.name }}</p>
+                <p><strong>Type:</strong> {{ selectedBooking.room.type }}</p>
+                <p><strong>Size:</strong> {{ selectedBooking.room.size }} m²</p>
+              </div>
+
+              <div class="detail-section">
+                <h3>Contact Information</h3>
+                <p><strong>Name:</strong> {{ selectedBooking.guestInfo.firstName }} {{ selectedBooking.guestInfo.lastName }}</p>
+                <p><strong>Email:</strong> {{ selectedBooking.guestInfo.email }}</p>
+                <p><strong>Phone:</strong> {{ selectedBooking.guestInfo.phone }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h3>Booking Information</h3>
+                <p><strong>Confirmation Number:</strong> {{ selectedBooking.confirmationNumber }}</p>
+                <p><strong>Check-in:</strong> {{ formatDate(selectedBooking.checkinDate) }}</p>
+                <p><strong>Check-out:</strong> {{ formatDate(selectedBooking.checkoutDate) }}</p>
+                <p><strong>Guests:</strong> {{ selectedBooking.guests }}</p>
+                <p><strong>Status:</strong> {{ selectedBooking.status }}</p>
+              </div>
+
+              <div class="detail-section">
+                <h3>Payment Summary</h3>
+                <p><strong>Room Rate:</strong> ${{ selectedBooking.room.price }} per night</p>
+                <p><strong>Nights:</strong> {{ calculateNights(selectedBooking) }}</p>
+                <p><strong>Subtotal:</strong> ${{ selectedBooking.subtotal }}</p>
+                <p><strong>Taxes & Fees:</strong> ${{ selectedBooking.taxes }}</p>
+                <p><strong>Total Amount:</strong> ${{ selectedBooking.totalAmount }}</p>
+              </div>
+            </div>
           </div>
 
-          <div class="detail-section">
-            <h3>Contact Information</h3>
-            <p><strong>Name:</strong> {{ selectedBooking.guestInfo.firstName }} {{ selectedBooking.guestInfo.lastName }}</p>
-            <p><strong>Email:</strong> {{ selectedBooking.guestInfo.email }}</p>
-            <p><strong>Phone:</strong> {{ selectedBooking.guestInfo.phone }}</p>
+          <div class="modal-footer">
+            <button @click="closeModal" class="action-btn view-btn">Close</button>
           </div>
-
-          <div class="detail-section">
-            <h3>Payment Summary</h3>
-            <p><strong>Room Rate:</strong> ${{ selectedBooking.room.price }} per night</p>
-            <p><strong>Nights:</strong> {{ calculateNights(selectedBooking) }}</p>
-            <p><strong>Subtotal:</strong> ${{ selectedBooking.subtotal }}</p>
-            <p><strong>Taxes & Fees:</strong> ${{ selectedBooking.taxes }}</p>
-            <p><strong>Total Amount:</strong> ${{ selectedBooking.totalAmount }}</p>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button @click="closeModal" class="action-btn view-btn">Close</button>
         </div>
       </div>
-    </div>
+    </Transition>
+    <Transition>
+      <div v-if="selectedCancelBooking" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2>Confirmation</h2>
+            <button @click="closeConfirmModal" class="close-btn">&times;</button>
+          </div>
+          <div class="modal-body">
+            <h2>Are you sure?</h2>
+            <p>This action cannot be undone. Are you sure you want to cancel this booking?</p>
+          </div>
+
+          <div class="modal-footer">
+            <button @click="closeConfirmModal" class="action-btn view-btn">Close</button>
+            <button @click="cancelBooking" class="action-btn delete-btn">{{ cancelLoading ? 'Canceling...' : 'Cancel Booking' }}</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+    <Transition name="notification">
+      <div v-if="isShowSuccessToast" class="notification">Booking cancelled successfully!</div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
+import DotLoader from '@/components/DotLoader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -147,10 +173,18 @@ const { user } = storeToRefs(authStore)
 
 const activeTab = ref('upcoming')
 const selectedBooking = ref<any>(null)
+const selectedCancelBooking = ref<any>(null)
+const isShowSuccessToast = ref(false)
+
+const loading = ref(true)
+const cancelLoading = ref(false)
 
 const bookings = ref<any[]>([])
 
-const loadBookings = () => {
+const loadBookings = async () => {
+  loading.value = true
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  loading.value = false
   try {
     const savedBookings = localStorage.getItem('bookings')
     let userBookings = []
@@ -234,25 +268,42 @@ const closeModal = () => {
   selectedBooking.value = null
 }
 
-const cancelBooking = async (booking: any) => {
+const openConfirmModal = (booking: any) => {
+  selectedCancelBooking.value = booking
+}
+
+const closeConfirmModal = () => {
+  selectedCancelBooking.value = null
+}
+
+const showSuccessToast = () => {
+  isShowSuccessToast.value = true
+  setTimeout(() => {
+    isShowSuccessToast.value = false
+  }, 3000)
+}
+
+const cancelBooking = async () => {
+  const booking = selectedCancelBooking.value
   if (!canCancelBooking(booking)) return
+  cancelLoading.value = true
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+  cancelLoading.value = false
+  booking.status = 'Cancelled'
 
-  if (confirm(`Are you sure you want to cancel booking #${booking.confirmationNumber}?`)) {
-    booking.status = 'Cancelled'
-
-    try {
-      const savedBookings = localStorage.getItem('bookings')
-      if (savedBookings) {
-        const allBookings = JSON.parse(savedBookings)
-        const updatedBookings = allBookings.map((b: any) => (b.confirmationNumber === booking.confirmationNumber ? { ...b, status: 'Cancelled' } : b))
-        localStorage.setItem('bookings', JSON.stringify(updatedBookings))
-      }
-    } catch (error) {
-      console.error('Error updating booking in localStorage:', error)
+  try {
+    const savedBookings = localStorage.getItem('bookings')
+    if (savedBookings) {
+      const allBookings = JSON.parse(savedBookings)
+      const updatedBookings = allBookings.map((b: any) => (b.confirmationNumber === booking.confirmationNumber ? { ...b, status: 'Cancelled' } : b))
+      localStorage.setItem('bookings', JSON.stringify(updatedBookings))
     }
-
-    alert('Booking cancelled successfully!')
+  } catch (error) {
+    console.error('Error updating booking in localStorage:', error)
   }
+
+  selectedCancelBooking.value = null
+  showSuccessToast()
 }
 
 const bookAgain = (booking: any) => {
@@ -507,16 +558,19 @@ onUnmounted(() => {
   background-color: #5a6268;
 }
 
-.cancel-btn {
+.cancel-btn,
+.delete-btn {
   background-color: #dc3545;
   color: white;
 }
 
-.cancel-btn:hover:not(:disabled) {
+.cancel-btn:hover:not(:disabled),
+.delete-btn:hover:not(:disabled) {
   background-color: #c82333;
 }
 
-.cancel-btn:disabled {
+.cancel-btn:disabled,
+.delete-btn:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
 }
@@ -573,10 +627,14 @@ onUnmounted(() => {
 .modal-content {
   background: white;
   border-radius: 12px;
-  max-width: 600px;
+  max-width: 750px;
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
+}
+
+.modal-content .confirmation {
+  max-width: 400px;
 }
 
 .modal-header {
@@ -614,6 +672,16 @@ onUnmounted(() => {
   padding: 1.5rem;
 }
 
+.modal-body h2 {
+  margin: 0;
+}
+
+.detail-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
 .detail-section {
   margin-bottom: 1.5rem;
 }
@@ -633,6 +701,28 @@ onUnmounted(() => {
   padding: 1.5rem;
   border-top: 1px solid #e9ecef;
   text-align: right;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: end;
+}
+
+.notification {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 8px;
+  font-weight: 500;
+  z-index: 1000;
+}
+
+.welcome-message {
+  font-size: 1.5rem !important;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: black !important;
 }
 
 @media (max-width: 768px) {

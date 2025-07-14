@@ -9,6 +9,10 @@
         Booking Confirmation Number: {{ bookingData?.confirmationNumber }} <br />
         Total Price for {{ calculateNights() }} Night{{ calculateNights() === 1 ? '' : 's' }}: S${{ bookingData?.totalAmount }}
       </p>
+
+      <router-link to="/dashboard">
+        <button class="goto-dashboard-btn">Go to dashboard</button>
+      </router-link>
     </div>
     <div class="confirmation-container">
       <div class="booking-details">
@@ -261,6 +265,14 @@ onMounted(() => {
   border-top: 1px solid #dee2e6;
   color: #2c3e50;
   font-size: 1.1rem;
+}
+
+.goto-dashboard-btn {
+  background-color: black; /* Blue */
+  color: white;
+  border: none;
+  padding: 0.5rem 2rem;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
