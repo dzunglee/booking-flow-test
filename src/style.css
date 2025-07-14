@@ -1,16 +1,35 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: black;
-  background-color: white;
+  --color-primary: #2c3e50;
+  --color-primary-hover: #34495e;
+  --color-secondary: #7f8c8d;
+  --color-success: #27ae60;
+  --color-danger: #e74c3c;
+  --color-warning: #f39c12;
+  --color-info: #3498db;
+
+  --color-white: #ffffff;
+  --color-light: #f8f9fa;
+  --color-light-gray: #e9ecef;
+  --color-gray: #dee2e6;
+  --color-dark-gray: #6c757d;
+  --color-text: #2c3e50;
+  --color-text-muted: #7f8c8d;
+
+  color: var(--color-text);
+  background-color: var(--color-white);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 a {
@@ -59,9 +78,8 @@ button:focus-visible {
 }
 
 #app {
-  width: 1280px;
+  width: 100%;
   margin: 0 auto;
-  text-align: center;
 }
 
 /* form */
