@@ -175,10 +175,6 @@ const selectRoom = (room: any) => {
   })
 }
 
-const onOrderChange = () => {
-  filterRooms()
-}
-
 onMounted(async () => {
   filterRooms()
 })

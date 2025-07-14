@@ -6,44 +6,32 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'BeatLoader',
+<script setup lang="ts">
+import { computed } from 'vue'
 
-  props: {
-    loading: {
-      type: Boolean,
-      default: true,
-    },
-    color: {
-      type: String,
-      default: '#5dc596',
-    },
-    size: {
-      type: String,
-      default: '15px',
-    },
-    margin: {
-      type: String,
-      default: '2px',
-    },
-    radius: {
-      type: String,
-      default: '100%',
-    },
-  },
-  data() {
-    return {
-      spinnerStyle: {
-        backgroundColor: this.color,
-        height: this.size,
-        width: this.size,
-        margin: this.margin,
-        borderRadius: this.radius,
-      },
-    }
-  },
+interface Props {
+  loading?: boolean
+  color?: string
+  size?: string
+  margin?: string
+  radius?: string
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: true,
+  color: '#5dc596',
+  size: '15px',
+  margin: '2px',
+  radius: '100%',
+})
+
+const spinnerStyle = computed(() => ({
+  backgroundColor: props.color,
+  height: props.size,
+  width: props.size,
+  margin: props.margin,
+  borderRadius: props.radius,
+}))
 </script>
 
 <style>
