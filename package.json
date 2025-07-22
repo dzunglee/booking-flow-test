@@ -4,23 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "pinia": "^3.0.3",
-    "vite-plugin-vercel": "^9.0.7",
-    "vite-svg-loader": "^5.1.0",
-    "vue": "^3.5.17",
-    "vue-router": "4"
+    "@pinia/nuxt": "^0.5.5",
+    "@vueuse/nuxt": "^11.1.0",
+    "nuxt": "^3.13.0",
+    "pinia": "^2.2.6"
   },
   "devDependencies": {
     "@types/node": "^24.0.13",
-    "@vitejs/plugin-vue": "^6.0.0",
-    "@vue/tsconfig": "^0.7.0",
-    "typescript": "~5.8.3",
-    "vite": "^7.0.4",
-    "vue-tsc": "^2.2.12"
+    "typescript": "~5.8.3"
   }
 }

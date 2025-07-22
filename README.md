@@ -1,5 +1,48 @@
-# Vue 3 + TypeScript + Vite
+# 🏨 Room Booking - Nuxt 3 Migration
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A modern hotel booking system migrated from Vue 3 + Vite to **Nuxt 3** with full-stack capabilities.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## ✨ Features
+
+- 🔐 **Authentication System** (Register/Login)
+- 🏨 **Hotel Room Search & Booking**
+- 📱 **Responsive Design**
+- 🎨 **Modern UI/UX**
+- 💾 **Server-side Data Storage**
+- 🛡️ **Middleware Protection**
+- 📧 **Booking Confirmations**
+
+## 🚀 Quick Start
+
+1. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+2. **Start development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Open in browser:**
+   ```
+   http://localhost:3000
+   ```
+
+## 🔄 User Flow
+
+1. **Home** (`/`) - Landing with navigation options
+2. **Register/Login** (`/auth/*`) - Authentication
+3. **Search** (`/booking`) - Hotel search form
+4. **Rooms** (`/booking/rooms`) - Available rooms list
+5. **Contact** (`/booking/contact`) - Booking details form
+6. **Confirmation** (`/booking/confirmation`) - Success page
+7. **Dashboard** (`/dashboard`) - User bookings overview
+
+---
+
+**Migration Status: ✅ COMPLETE**
+
+The application has been successfully migrated from Vue 3 + Vite to Nuxt 3 with enhanced server-side capabilities.
