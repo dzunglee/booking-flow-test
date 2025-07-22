@@ -1,6 +1,6 @@
 <template>
   <div class="room-search-page">
-    <BookingSteps :current-step="1" />
+    <!-- <BookingSteps :current-step="1" /> -->
 
     <section class="hero-section">
       <div class="hero-content">

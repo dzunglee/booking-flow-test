@@ -22,21 +22,21 @@
           <div v-for="booking in upcomingBookings" :key="booking.id" class="booking-card">
             <div class="booking-details">
               <div class="booking-info">
-                <h3 class="room-name">{{ booking.room?.name || 'Room' }}</h3>
+                <h3 class="room-name">{{ booking.roomName || booking.room?.name || 'Room' }}</h3>
                 <p class="booking-dates">
-                  <strong>Check-in:</strong> {{ formatDate(booking.checkinDate) }} <br />
-                  <strong>Check-out:</strong> {{ formatDate(booking.checkoutDate) }}
+                  <strong>Check-in:</strong> {{ formatDate(booking.checkinDate || booking.searchParams?.checkin) }} <br />
+                  <strong>Check-out:</strong> {{ formatDate(booking.checkoutDate || booking.searchParams?.checkout) }}
                 </p>
-                <p class="booking-guests"><strong>Guests:</strong> {{ booking.guests }} guest{{ booking.guests > 1 ? 's' : '' }}</p>
-                <p class="booking-total"><strong>Total:</strong> ${{ booking.totalAmount }}</p>
+                <p class="booking-guests"><strong>Guests:</strong> {{ booking.guests || booking.searchParams?.guests }} guest{{ (booking.guests || booking.searchParams?.guests) > 1 ? 's' : '' }}</p>
+                <p class="booking-total"><strong>Total:</strong> ${{ booking.totalAmount || booking.pricing?.total }}</p>
               </div>
 
               <div class="booking-status">
                 <span :class="['status-badge', booking.status.toLowerCase()]">
                   {{ booking.status }}
                 </span>
-                <p class="booking-number">Booking #{{ booking.confirmationNumber }}</p>
-                <img width="210" :src="booking.room?.image || 'https://placehold.co/340x210'" :alt="booking.room?.name || 'Room'" />
+                <p class="booking-number">Booking #{{ booking.confirmationNumber || booking.bookingReference }}</p>
+                <img width="210" :src="booking.roomImage || booking.room?.image || 'https://placehold.co/340x210'" :alt="booking.roomName || booking.room?.name || 'Room'" />
               </div>
             </div>
 
@@ -59,21 +59,21 @@
           <div v-for="booking in pastBookings" :key="booking.id" class="booking-card">
             <div class="booking-details">
               <div class="booking-info">
-                <h3 class="room-name">{{ booking.room?.name || 'Room' }}</h3>
+                <h3 class="room-name">{{ booking.roomName || booking.room?.name || 'Room' }}</h3>
                 <p class="booking-dates">
-                  <strong>Check-in:</strong> {{ formatDate(booking.checkinDate) }} <br />
-                  <strong>Check-out:</strong> {{ formatDate(booking.checkoutDate) }}
+                  <strong>Check-in:</strong> {{ formatDate(booking.checkinDate || booking.searchParams?.checkin) }} <br />
+                  <strong>Check-out:</strong> {{ formatDate(booking.checkoutDate || booking.searchParams?.checkout) }}
                 </p>
-                <p class="booking-guests"><strong>Guests:</strong> {{ booking.guests }} guest{{ booking.guests > 1 ? 's' : '' }}</p>
-                <p class="booking-total"><strong>Total:</strong> ${{ booking.totalAmount }}</p>
+                <p class="booking-guests"><strong>Guests:</strong> {{ booking.guests || booking.searchParams?.guests }} guest{{ (booking.guests || booking.searchParams?.guests) > 1 ? 's' : '' }}</p>
+                <p class="booking-total"><strong>Total:</strong> ${{ booking.totalAmount || booking.pricing?.total }}</p>
               </div>
 
               <div class="booking-status">
                 <span :class="['status-badge', booking.status.toLowerCase()]">
                   {{ booking.status }}
                 </span>
-                <p class="booking-number">Booking #{{ booking.confirmationNumber }}</p>
-                <img width="210" :src="booking.room?.image || '/placeholder-room.jpg'" :alt="booking.room?.name || 'Room'" />
+                <p class="booking-number">Booking #{{ booking.confirmationNumber || booking.bookingReference }}</p>
+                <img width="210" :src="booking.roomImage || booking.room?.image || '/placeholder-room.jpg'" :alt="booking.roomName || booking.room?.name || 'Room'" />
               </div>
             </div>
 
@@ -174,8 +174,19 @@ definePageMeta({
   layout: 'default',
 })
 
-const { data: sessionData } = await $fetch('/api/auth/me')
-const user = sessionData?.user
+const user = ref(null)
+
+const loadUserData = async () => {
+  try {
+    const { data: sessionData } = await $fetch('/api/auth/me', {
+      credentials: 'include',
+    })
+    user.value = sessionData?.user
+  } catch (error) {
+    console.error('Failed to load user data:', error)
+    await navigateTo('/auth/login')
+  }
+}
 
 const activeTab = ref('upcoming')
 const selectedBooking = ref<any>(null)
@@ -204,12 +215,20 @@ const loadBookings = async () => {
 const upcomingBookings = computed(() => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  return bookings.value.filter((booking: Booking) => new Date(booking.checkinDate) >= today && booking.status !== 'Cancelled')
+  return bookings.value.filter((booking: any) => {
+    const checkinDate = new Date(booking.checkinDate || booking.searchParams?.checkin)
+    const status = booking.status?.toLowerCase()
+    return checkinDate >= today && status.toLowerCase() === 'confirmed'
+  })
 })
 
 const pastBookings = computed(() => {
   const today = new Date()
-  return bookings.value.filter((booking: Booking) => new Date(booking.checkoutDate) < today || booking.status === 'Completed')
+  return bookings.value.filter((booking: any) => {
+    const checkoutDate = new Date(booking.checkoutDate || booking.searchParams?.checkout)
+    const status = booking.status?.toLowerCase()
+    return checkoutDate < today || status === 'completed' || status === 'cancelled'
+  })
 })
 
 const formatDate = (dateString: string) => {
@@ -229,10 +248,11 @@ const calculateNights = (booking: any) => {
 }
 
 const canCancelBooking = (booking: any) => {
-  const checkinDate = new Date(booking.checkinDate)
+  const checkinDate = new Date(booking.checkinDate || booking.searchParams?.checkin)
   const today = new Date()
   const daysDiff = (checkinDate.getTime() - today.getTime()) / (1000 * 3600 * 24)
-  return daysDiff > 1 && booking.status === 'Confirmed'
+  const status = booking.status?.toLowerCase()
+  return daysDiff > 0 && status === 'confirmed'
 }
 
 const viewBooking = (booking: any) => {
@@ -264,14 +284,20 @@ const cancelBooking = async () => {
 
   cancelLoading.value = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const response = await $fetch(`/api/bookings/${booking.id}/cancel`, {
+      method: 'POST',
+      credentials: 'include',
+    })
 
-    booking.status = 'Cancelled'
-
-    selectedCancelBooking.value = null
-    showSuccessToast()
-  } catch (error) {
+    if (response.success) {
+      booking.status = 'cancelled'
+      selectedCancelBooking.value = null
+      showSuccessToast()
+      await loadBookings()
+    }
+  } catch (error: any) {
     console.error('Error cancelling booking:', error)
+    alert(error.data?.message || 'Failed to cancel booking. Please try again.')
   } finally {
     cancelLoading.value = false
   }
@@ -287,7 +313,8 @@ const bookAgain = (booking: any) => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadUserData()
   loadBookings()
 })
 </script>

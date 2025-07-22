@@ -41,6 +41,13 @@ export default defineEventHandler(async (event) => {
     createdAt: new Date().toISOString(),
   })
 
+  setCookie(event, 'auth-token', token, {
+    httpOnly: true,
+    secure: false, // Set to true in production
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+  })
+
   return {
     data: {
       success: true,

@@ -10,7 +10,7 @@
 
     <footer class="guest-footer">
       <div class="container">
-        <p>&copy; 2024 Room Booking. All rights reserved.</p>
+        <p>&copy; 2025 Room Booking. All rights reserved.</p>
       </div>
     </footer>
   </div>

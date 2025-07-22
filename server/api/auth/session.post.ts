@@ -9,11 +9,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  await useStorage('sessions').setItem(token, {
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    createdAt: new Date().toISOString(),
+  })
+
   setCookie(event, 'auth-token', token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
   })
 
   return {

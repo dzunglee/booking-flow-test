@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
     id: crypto.randomUUID(),
     name: name.trim(),
     email,
+    password,
     createdAt: new Date().toISOString(),
   }
 
@@ -53,6 +54,13 @@ export default defineEventHandler(async (event) => {
     email: newUser.email,
     name: newUser.name,
     createdAt: new Date().toISOString(),
+  })
+
+  setCookie(event, 'auth-token', token, {
+    httpOnly: true,
+    secure: false, // Set to true in production
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
   })
 
   return {

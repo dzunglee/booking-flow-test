@@ -8,7 +8,7 @@
 
     <footer class="app-footer">
       <div class="footer-container">
-        <p>&copy; 2024 Room Booking. All rights reserved.</p>
+        <p>&copy; 2025 Room Booking. All rights reserved.</p>
       </div>
     </footer>
   </div>

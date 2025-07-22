@@ -37,7 +37,7 @@ const steps = ['Search', 'Select Room', 'Contact Details', 'Confirmation']
   align-items: center;
   max-width: 800px;
   margin: 0 auto;
-  gap: 2rem;
+  gap: 1rem;
   padding: 0 1rem;
 }
 
@@ -82,7 +82,7 @@ const steps = ['Search', 'Select Room', 'Contact Details', 'Confirmation']
 }
 
 .step-line {
-  width: 60px;
+  width: 30px;
   height: 2px;
   border: none;
   background-color: #dee2e6;

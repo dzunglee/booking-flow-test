@@ -8,7 +8,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get session from storage
   const session = await useStorage('sessions').getItem(token)
 
   if (!session) {

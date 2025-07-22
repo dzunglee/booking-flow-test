@@ -5,7 +5,6 @@ export default defineNuxtConfig({
 
   css: ['~/assets/main.css'],
 
-  // Nitro for server-side storage
   nitro: {
     storage: {
       data: {
@@ -19,12 +18,10 @@ export default defineNuxtConfig({
     },
   },
 
-  // Auto imports
   imports: {
     dirs: ['composables', 'stores', 'utils'],
   },
 
-  // Component auto-imports
   components: [
     {
       path: '~/components',
@@ -32,6 +29,5 @@ export default defineNuxtConfig({
     },
   ],
 
-  // Compatibility
   compatibilityDate: '2025-07-22',
 })

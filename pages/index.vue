@@ -3,7 +3,6 @@ definePageMeta({
   layout: 'default',
 })
 
-// Auto redirect to booking page
 await navigateTo('/booking', { replace: true })
 </script>
 

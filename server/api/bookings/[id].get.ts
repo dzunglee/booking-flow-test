@@ -8,7 +8,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get bookings
   const bookings: any = (await useStorage('data').getItem('bookings')) || []
 
   const booking = bookings.find((b: any) => b.id === bookingId)
