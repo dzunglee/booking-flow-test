@@ -2,7 +2,7 @@ export default defineEventHandler(async (event) => {
   const token = getCookie(event, 'auth-token')
 
   if (token) {
-    await useStorage('sessions').removeItem(token)
+    await SessionKV.delete(token)
   }
 
   setCookie(event, 'auth-token', '', {

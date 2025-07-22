@@ -1,3 +1,7 @@
+import bcrypt from 'bcryptjs'
+import { SessionKV } from '~/server/utils/kv'
+import { UserStorage } from '~/server/utils/user-storage'
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
@@ -10,9 +14,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const users = (await useStorage('data').getItem('users')) || []
-
-  const user = users.find((u: any) => u.email === email)
+  const user = await UserStorage.getUser(email)
 
   if (!user) {
     return {
@@ -23,7 +25,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  if (user.password !== password) {
+  const isValidPassword = bcrypt.compareSync(password, user.password)
+
+  if (!isValidPassword) {
     return {
       data: {
         success: false,
@@ -33,19 +37,21 @@ export default defineEventHandler(async (event) => {
   }
 
   const token = btoa(`${user.id}-${Date.now()}`)
-
-  await useStorage('sessions').setItem(token, {
+  const sessionData = {
     userId: user.id,
     email: user.email,
     name: user.name,
     createdAt: new Date().toISOString(),
-  })
+  }
+
+  await SessionKV.set(token, sessionData)
 
   setCookie(event, 'auth-token', token, {
     httpOnly: true,
-    secure: false, // Set to true in production
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
   })
 
   return {
@@ -56,7 +62,7 @@ export default defineEventHandler(async (event) => {
         email: user.email,
         name: user.name,
       },
-      token,
+      token: token,
     },
   }
 })

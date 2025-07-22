@@ -1,3 +1,4 @@
+import { BookingStorage } from '~/server/utils/booking-storage'
 import { rooms } from '../../data/rooms'
 
 export default defineEventHandler(async (event) => {
@@ -10,7 +11,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const session = await useStorage('sessions').getItem(token)
+  const session: any = await getSessionFromToken(token)
   if (!session) {
     throw createError({
       statusCode: 401,
@@ -22,7 +23,6 @@ export default defineEventHandler(async (event) => {
   const executiveRoom = rooms.find((r) => r.id === '2')
   const standardRoom = rooms.find((r) => r.id === '3')
 
-  // Only show mock past bookings for user with id "1" (John Doe)
   const mockPastBookings =
     session.userId === '1'
       ? [
@@ -86,12 +86,9 @@ export default defineEventHandler(async (event) => {
         ]
       : []
 
-  let realBookings = []
+  let realBookings: any = []
   try {
-    const bookingsFromStorage: any = (await useStorage('data').getItem('bookings')) || []
-
-    // Filter bookings by current user
-    const userBookings = bookingsFromStorage.filter((booking: any) => booking.userId === session.userId)
+    const userBookings = await BookingStorage.getUserBookings(session.userId)
 
     realBookings = userBookings.map((booking: any) => ({
       id: booking.id,

@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await useStorage('sessions').setItem(token, {
+  await SessionKV.set(token, {
     userId: user.id,
     email: user.email,
     name: user.name,

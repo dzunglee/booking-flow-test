@@ -305,7 +305,7 @@ const cancelBooking = async () => {
 
 const bookAgain = (booking: any) => {
   navigateTo({
-    path: '/rooms',
+    path: 'booking/rooms',
     query: {
       guests: booking.guests.toString(),
       type: booking.room?.type?.toLowerCase(),

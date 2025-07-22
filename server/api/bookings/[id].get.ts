@@ -1,3 +1,5 @@
+import { BookingStorage } from '~/server/utils/booking-storage'
+
 export default defineEventHandler(async (event) => {
   const bookingId = getRouterParam(event, 'id')
 
@@ -8,9 +10,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const bookings: any = (await useStorage('data').getItem('bookings')) || []
-
-  const booking = bookings.find((b: any) => b.id === bookingId)
+  const booking = await BookingStorage.getBooking(bookingId)
 
   if (!booking) {
     throw createError({

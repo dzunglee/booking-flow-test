@@ -32,3 +32,5 @@ dist-ssr
 .sessions
 .nitro
 .cache
+.vercel
+.env

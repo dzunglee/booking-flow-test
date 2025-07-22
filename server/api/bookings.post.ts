@@ -1,3 +1,5 @@
+import { BookingStorage } from '~/server/utils/booking-storage'
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
@@ -9,7 +11,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const session = await useStorage('sessions').getItem(token)
+  const session = await getSessionFromToken(token)
   if (!session) {
     throw createError({
       statusCode: 401,
@@ -27,7 +29,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const booking = {
-    id: crypto.randomUUID(),
+    id: BookingStorage.generateId(),
     userId: session.userId,
     roomId: room.id,
     roomName: room.name,
@@ -35,15 +37,13 @@ export default defineEventHandler(async (event) => {
     contactInfo,
     searchParams,
     pricing,
-    status: 'confirmed',
-    bookingReference: generateBookingReference(),
+    status: 'confirmed' as const,
+    bookingReference: BookingStorage.generateReference(),
     createdAt: new Date().toISOString(),
   }
 
-  const bookings: any = (await useStorage('data').getItem('bookings')) || []
-  bookings.push(booking)
-
-  await useStorage('data').setItem('bookings', bookings)
+  // Save booking to Redis
+  await BookingStorage.saveBooking(booking)
 
   return {
     data: {
@@ -54,12 +54,3 @@ export default defineEventHandler(async (event) => {
     },
   }
 })
-
-function generateBookingReference() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = ''
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return 'BKG' + result
-}

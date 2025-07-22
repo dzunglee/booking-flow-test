@@ -1,3 +1,6 @@
+import { BookingStorage } from '~/server/utils/booking-storage'
+import { SessionKV } from '~/server/utils/kv'
+
 export default defineEventHandler(async (event) => {
   const bookingId = getRouterParam(event, 'id')
   const token = getCookie(event, 'auth-token')
@@ -9,7 +12,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const session = await useStorage('sessions').getItem(token)
+  const session = await SessionKV.get(token)
   if (!session) {
     throw createError({
       statusCode: 401,
@@ -24,17 +27,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const bookings: any = (await useStorage('data').getItem('bookings')) || []
-  const bookingIndex = bookings.findIndex((b: any) => b.id === bookingId)
+  const booking = await BookingStorage.getBooking(bookingId)
 
-  if (bookingIndex === -1) {
+  if (!booking) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Booking not found',
     })
   }
-
-  const booking = bookings[bookingIndex]
 
   if (booking.userId !== session.userId) {
     throw createError({
@@ -68,17 +68,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  bookings[bookingIndex] = {
-    ...booking,
-    status: 'cancelled',
-    cancelledAt: new Date().toISOString(),
-  }
-
-  await useStorage('data').setItem('bookings', bookings)
+  const cancelledBooking = await BookingStorage.cancelBooking(bookingId)
 
   return {
     success: true,
     message: 'Booking cancelled successfully',
-    booking: bookings[bookingIndex],
+    booking: cancelledBooking,
   }
 })

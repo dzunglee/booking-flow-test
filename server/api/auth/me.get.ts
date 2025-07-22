@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const session = await useStorage('sessions').getItem(token)
+  const session = await getSessionFromToken(token)
 
   if (!session) {
     throw createError({
